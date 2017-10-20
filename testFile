@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head>
+<body>
+<h1>Interview test</h1>
+<p>You have to implement missing part of the application (`Parallel`) that making the code to be compiled and executed
+    without exceptions and assertions in browser console.</p>
+<script>
+  function Parallel(options) {
+      this.options = options;
+      this.promiseArr = [];
+  }
+
+  Parallel.prototype = Promise.prototype;
+
+  Parallel.prototype.job = function(step) {
+      console.log('Do job - element of chaining');
+
+      let promise = new Promise((resolve, reject) => {
+          step(this.doneFromStep.bind(this, resolve));
+      });
+
+      this.promiseArr.push(promise);
+
+      return this;
+  };
+
+  Parallel.prototype.doneFromStep = function(resolve, param) {
+      console.log('Do function DONE in every step by setTimout');
+      resolve(param);
+  }
+
+  Parallel.prototype.done = function(onDone) {
+      console.log('Do last chain element');
+
+      this.promiseArr.reduce((prev, cur) => prev.then(cur));
+
+      Promise.all(this.promiseArr).then(function(results) {
+          console.log('↓↓↓↓↓↓↓↓ results ↓↓↓↓↓↓↓↓');
+          console.log(results);
+          console.log('↑↑↑↑↑↑↑↑ results ↑↑↑↑↑↑↑↑');
+          onDone(results);
+      });
+  }
+  
+</script>
+<script>
+    /************************************************
+     * Please don`t change the code bellow this line *
+     ************************************************/
+     
+    var runner = new Parallel({
+        //the number of simultaneously possible jobs, other jobs should be placed in queue.
+        parallelJobs: 2
+    });
+
+    runner.job(step1)
+        .job(step2)
+        .job(step3)
+        .job(step4)
+        .done(onDone);
+
+    function step1(done) {
+        console.log('step1');
+        for ( let i = 0; i <= 10e4; i++ ) ;
+        console.log('end step1 cicle');
+        setTimeout(done, 1000, 'hello world');
+    }
+
+    function step2(done) {
+        console.log('step2');
+        for ( let i = 0; i <= 10e2; i++ ) ;
+        console.log('end step2 cicle');
+        setTimeout(done, 1200, 'Job succeded');
+    }
+
+    function step3(done) {
+        console.log('step3');
+        for ( let i = 0; i <= 10e3; i++ ) ;
+        console.log('end step3 cicle');
+        setTimeout(done, 1500, 'step3');
+    }
+
+    function step4(done) {
+        console.log('step4');
+        for ( let i = 0; i <= 10e1; i++ ) ;
+        console.log('end step4 cicle');
+        setTimeout(done, 100, 'step4');
+    }
+
+    var isPassed = false;
+
+    function onDone(results) {
+        console.log('onDone', results);
+        console.assert(Array.isArray(results), 'expect result to be array');
+        console.assert(results[0] === 'hello world', 'Wrong answer 1');
+        console.assert(results[1] === 'Job succeded', 'Wrong answer 2');
+        console.assert(results[2] === 'step3', 'Wrong answer 3');
+        console.assert(results[3] === 'step4', 'Wrong answer 4');
+        console.log('Thanks, all works fine');
+        isPassed = true;
+    }
+
+    setTimeout(function () {
+        if ( isPassed ) return;
+        console.error('Test is not done.');
+    }, 10000);
+</script>
+</body></html>
